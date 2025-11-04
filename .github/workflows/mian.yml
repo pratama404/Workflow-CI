@@ -1,0 +1,81 @@
+name: MLflow CI-CD Workflow
+
+# Trigger: Jalankan workflow ini jika ada push ke branch 'main',
+# TAPI hanya jika ada perubahan di dalam folder 'MLProject/'
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'MLProject/**'
+
+jobs:
+  train-build-push:
+    runs-on: ubuntu-latest
+    
+    # Izin untuk push Docker image ke GitHub Packages (jika mau)
+    # atau diperlukan untuk beberapa action
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    # 1. Checkout kode dari repositori
+    - name: Check out repository
+      uses: actions/checkout@v4
+
+    # 2. Setup Miniconda
+    # Penting karena MLProject kita pakai 'conda.yaml'
+    - name: Set up Miniconda
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        auto-activate-base: true
+        python-version: "3.10"
+
+    # 3. Install MLflow di runner
+    # Runner perlu MLflow untuk BISA menjalankan perintah 'mlflow run'
+    - name: Install MLflow
+      run: pip install mlflow scikit-learn
+
+    # 4. Login ke Docker Hub
+    # WAJIB untuk push image (Skor Advance)
+    # Kamu harus buat secrets DOCKERHUB_USERNAME & DOCKERHUB_TOKEN
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    # 5. Jalankan MLflow Project
+    # Ini akan otomatis membaca 'MLProject', 'conda.yaml', 
+    # dan 'modelling.py', lalu melatih model.
+    - name: Run MLflow Project
+      run: |
+        cd MLProject
+        mlflow run .
+      # Perintah di atas akan membuat folder 'outputs/' di dalam 'MLProject/'
+
+    # 6. Upload Artefak Model (Skor Skilled)
+    # Simpan model & scaler (.joblib) sebagai artefak di GitHub Actions
+    - name: Upload Model Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: model-artifacts
+        path: MLProject/outputs/ # Upload folder outputs
+
+    # 7. Bangun Docker Image (Skor Advance)
+    # Ganti 'pratama404' dengan username Docker Hub kamu
+    - name: Build Docker image with MLflow
+      run: |
+        cd MLProject
+        mlflow build-docker \
+          --model-uri ./outputs \
+          --name "pratama404/kualitas-udara-model:latest" \
+          --env-manager=local
+      # Perintah ini membangun image DARI artefak di folder './outputs'
+      # dan menamainya 'pratama404/kualitas-udara-model:latest'
+
+    # 8. Push Docker Image ke Docker Hub (Skor Advance)
+    # Ganti 'pratama404' dengan username Docker Hub kamu
+    - name: Push Docker Image
+      run: docker push pratama404/kualitas-udara-model:latest
