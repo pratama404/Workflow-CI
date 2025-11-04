@@ -1,0 +1,10 @@
+name: ml-workflow
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pandas
+  - scikit-learn
+  - mlflow
+  - joblib
