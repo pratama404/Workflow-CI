@@ -35,7 +35,7 @@ jobs:
     # 3. Install MLflow di runner
     # Runner perlu MLflow untuk BISA menjalankan perintah 'mlflow run'
     - name: Install MLflow
-      run: pip install mlflow scikit-learn
+      run: pip install "mlflow[docker]" scikit-learn
 
     # 4. Login ke Docker Hub
     # WAJIB untuk push image (Skor Advance)
