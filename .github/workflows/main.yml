@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - 'MLProject/**'
-      - '.github/workflows/main.yml'
+      - '.github/workflows/main.yml' # Ini adalah trigger perbaikan
 
 jobs:
   train-build-push:
@@ -28,9 +28,9 @@ jobs:
         auto-activate-base: true
         python-version: "3.10"
 
-    # 3. Install MLflow di runner (DENGAN PERBAIKAN)
+    # 3. Install MLflow dan Docker library (INI PERBAIKANNYA)
     - name: Install MLflow and Docker library
-      shell: bash -l {0}  # <-- WAJIB
+      shell: bash -l {0}  # Wajib agar masuk ke environment conda
       run: pip install mlflow scikit-learn docker
 
     # 4. Login ke Docker Hub
@@ -40,9 +40,9 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    # 5. Jalankan MLflow Project (Sudah benar)
+    # 5. Jalankan MLflow Project
     - name: Run MLflow Project
-      shell: bash -l {0}
+      shell: bash -l {0} # Wajib
       run: |
         cd MLProject
         mlflow run .
@@ -54,9 +54,9 @@ jobs:
         name: model-artifacts
         path: MLProject/outputs/
 
-    # 7. Bangun Docker Image (DENGAN PERBAIKAN)
+    # 7. Bangun Docker Image
     - name: Build Docker image with MLflow
-      shell: bash -l {0}  # <-- WAJIB
+      shell: bash -l {0}  # Wajib
       run: |
         cd MLProject
         mlflow build-docker \
@@ -64,7 +64,7 @@ jobs:
           --name "pratama404/kualitas-udara-model:latest" \
           --env-manager=local
 
-    # 8. Push Docker Image ke Docker Hub (DENGAN PERBAIKAN)
+    # 8. Push Docker Image ke Docker Hub
     - name: Push Docker Image
-      shell: bash -l {0}  # <-- WAJIB
+      shell: bash -l {0}  # Wajib
       run: docker push pratama404/kualitas-udara-model:latest
