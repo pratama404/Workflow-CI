@@ -24,7 +24,7 @@ X = df.iloc[:, :-1]
 y = df.iloc[:, -1]
 
 # --- 2. Split Data ---
-# Kita split hanya untuk scaling, tapi kita akan latih di SEMUA data
+# Kita split hanya untuk scaling, tapi kita akan latih di SEMUA dataa
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 print("Data split selesai.")
 
