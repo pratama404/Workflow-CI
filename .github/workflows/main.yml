@@ -50,6 +50,7 @@ jobs:
     # Ini akan otomatis membaca 'MLProject', 'conda.yaml', 
     # dan 'modelling.py', lalu melatih model.
     - name: Run MLflow Project
+      shell: bash -l {0}
       run: |
         cd MLProject
         mlflow run .
