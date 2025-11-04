@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - 'MLProject/**'
-      - '.github/workflows/main.yml' # Ini adalah trigger perbaikan
+      - '.github/workflows/main.yml'
 
 jobs:
   train-build-push:
@@ -28,43 +28,67 @@ jobs:
         auto-activate-base: true
         python-version: "3.10"
 
-    # 3. Install MLflow dan Docker library (INI PERBAIKANNYA)
-    - name: Install MLflow and Docker library
-      shell: bash -l {0}  # Wajib agar masuk ke environment conda
-      run: pip install mlflow scikit-learn docker
+    # 3. Install MLflow dan Docker library
+    - name: Install MLflow and dependencies
+      shell: bash -l {0}
+      run: |
+        pip install mlflow scikit-learn docker
 
-    # 4. Login ke Docker Hub
+    # 4. Cek versi MLflow untuk memastikan kompatibilitas
+    - name: Check MLflow version
+      shell: bash -l {0}
+      run: |
+        echo "=== MLflow Version Check ==="
+        mlflow --version
+        echo "============================="
+
+    # 5. Login ke Docker Hub
     - name: Log in to Docker Hub
       uses: docker/login-action@v3
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    # 5. Jalankan MLflow Project
+    # 6. Jalankan MLflow Project
     - name: Run MLflow Project
-      shell: bash -l {0} # Wajib
+      shell: bash -l {0}
       run: |
         cd MLProject
+        echo "=== Running MLflow Project ==="
         mlflow run .
+        echo "=== Project Run Complete ==="
 
-    # 6. Upload Artefak Model
+    # 7. Verifikasi output model
+    - name: Check model output
+      shell: bash -l {0}
+      run: |
+        echo "=== Checking model files ==="
+        ls -R MLProject/outputs || echo "⚠️ Model output folder not found!"
+        echo "============================="
+
+    # 8. Upload Artefak Model
     - name: Upload Model Artifact
       uses: actions/upload-artifact@v4
       with:
         name: model-artifacts
         path: MLProject/outputs/
 
-    # 7. Bangun Docker Image
+    # 9. Bangun Docker Image dengan MLflow
     - name: Build Docker image with MLflow
-      shell: bash -l {0}  # Wajib
+      shell: bash -l {0}
       run: |
         cd MLProject
-        mlflow build-docker \
+        echo "=== Building Docker Image from MLflow Model ==="
+        mlflow models build-docker \
           --model-uri ./outputs \
-          --name "pratama404/kualitas-udara-model:latest" \
-          --env-manager=local
+          --name pratama404/kualitas-udara-model:latest
+        echo "=== Docker Build Complete ==="
+        docker images | grep kualitas-udara-model || echo "⚠️ Image not found after build!"
 
-    # 8. Push Docker Image ke Docker Hub
+    # 10. Push Docker Image ke Docker Hub
     - name: Push Docker Image
-      shell: bash -l {0}  # Wajib
-      run: docker push pratama404/kualitas-udara-model:latest
+      shell: bash -l {0}
+      run: |
+        echo "=== Pushing Docker Image to Docker Hub ==="
+        docker push pratama404/kualitas-udara-model:latest
+        echo "=== Push Complete ==="
