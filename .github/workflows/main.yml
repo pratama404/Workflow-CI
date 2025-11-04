@@ -8,6 +8,7 @@ on:
       - main
     paths:
       - 'MLProject/**'
+      - '.github/workflows/main.yml'
 
 jobs:
   train-build-push:
