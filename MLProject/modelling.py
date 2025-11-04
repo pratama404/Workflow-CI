@@ -12,7 +12,7 @@ warnings.filterwarnings('ignore')
 
 print("Script training (modelling.py) dimulai...")
 
-# --- 1. Load Data ----
+# --- 1. Load Data -----
 try:
     df = pd.read_csv("data_bersih.csv")
     print(f"Data berhasil dimuat. Shape: {df.shape}")
